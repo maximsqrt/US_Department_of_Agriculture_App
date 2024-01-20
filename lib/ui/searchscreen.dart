@@ -1,13 +1,10 @@
-
-
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:kalorientracker/food/food.dart';
 import 'package:kalorientracker/food_nutrition/food_nutrition.dart';
-
-
+import 'package:kalorientracker/fooddetailsscreen.dart';
 
 class MyApp extends StatefulWidget {
   @override
@@ -23,33 +20,28 @@ class _MyAppState extends State<MyApp> {
     futureFood = fetchFoodData();
   }
 
-Future<List<Food>> fetchFoodData() async {
-  final response = await http.get(
-    Uri.parse('https://api.nal.usda.gov/fdc/v1/foods/list?api_key=ylflw3nN88Xb4VZhQQmmULEFgruEAo3UEhcEdXad'),
-  );
+  Future<List<Food>> fetchFoodData() async {
+    final response = await http.get(
+      Uri.parse(
+          'https://api.nal.usda.gov/fdc/v1/foods/list?api_key=ylflw3nN88Xb4VZhQQmmULEFgruEAo3UEhcEdXad'),
+    );
 
-  if (response.statusCode == 200) {
-    List jsonResponse = json.decode(response.body);
-    return jsonResponse.map((item) {
-      // Convert the 'foodNutrients' field to a List<dynamic>
-      var foodNutrientsList = item['foodNutrients'] as List;
-      // Replace the 'foodNutrients' field in the item with a List<FoodNutrition>
-      item['foodNutrients'] = foodNutrientsList.map((i) {
-        // Convert 'amount' to int before creating the FoodNutrition object
-        if (i['amount'] != null) {
-          i['amount'] = (i['amount'] as num).toInt();
-        }
-        return FoodNutrition.fromJson(i);
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse.map((item) {
+        var foodNutrientsList = item['foodNutrients'] as List;
+        item['foodNutrients'] = foodNutrientsList.map((i) {
+          if (i['amount'] != null) {
+            i['amount'] = (i['amount'] as num).toInt();
+          }
+          return FoodNutrition.fromJson(i);
+        }).toList();
+        return Food.fromJson(item);
       }).toList();
-      // Now create the Food object
-      return Food.fromJson(item);
-    }).toList();
-  } else {
-    throw Exception('Failed to load food data');
+    } else {
+      throw Exception('Failed to load food data');
+    }
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +55,20 @@ Future<List<Food>> fetchFoodData() async {
           if (snapshot.hasData) {
             List<Food>? data = snapshot.data;
             return ListView.builder(
-                itemCount: data?.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Card(
+              itemCount: data?.length,
+              itemBuilder: (BuildContext context, int index) {
+                return GestureDetector(
+                  onTap: () {
+                    // Navigate Screen logic
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            FoodDetailsScreen(food: data![index]),
+                      ),
+                    );
+                  },
+                  child: Card(
                     child: Column(
                       children: <Widget>[
                         Text('Description: ${data![index].description}'),
@@ -73,8 +76,10 @@ Future<List<Food>> fetchFoodData() async {
                         // Add more details as needed
                       ],
                     ),
-                  );
-                });
+                  ),
+                );
+              },
+            );
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
           }

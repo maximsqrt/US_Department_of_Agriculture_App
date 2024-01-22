@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:kalorientracker/food/food.dart';
 import 'package:kalorientracker/food_nutrition/food_nutrition.dart';
 import 'package:kalorientracker/fooddetailsscreen.dart';
+import 'package:kalorientracker/ui/colors.dart';
 
 class MyApp extends StatefulWidget {
   @override
@@ -47,7 +48,8 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Food List'),
+        backgroundColor: AppBarColor.color,
+        title: Text('Food List', style:TextStyle(color: FontColor.color),),
       ),
       body: FutureBuilder<List<Food>>(
         future: futureFood,
@@ -64,15 +66,19 @@ class _MyAppState extends State<MyApp> {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            FoodDetailsScreen(food: data![index]),
+                            FoodDetailsScreen(foodList: data!, currentIndex: index),
                       ),
                     );
                   },
                   child: Card(
+                    margin: EdgeInsets.all(4),
+                    color: FontColor.color,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
                     child: Column(
                       children: <Widget>[
                         Text('Description: ${data![index].description}'),
                         Text('Data Type: ${data[index].dataType}'),
+                        
                         // Add more details as needed
                       ],
                     ),
